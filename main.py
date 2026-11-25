@@ -16,13 +16,21 @@ LINE = (
 )
 
 
-def main() -> int:
-    text = LINE.strip()
+def valid_line(text: str) -> str:
+    """Return the entry line, rejecting anything the gate would refuse."""
+    text = text.strip()
     if not 1 <= len(text) <= 140:
-        print(f"entry must be 1-140 characters, got {len(text)}", file=sys.stderr)
-        return 1
-    if "\n" in text or "\r" in text:
-        print("entry must be a single line", file=sys.stderr)
+        raise ValueError(f"entry must be 1-140 characters, got {len(text)}")
+    if any(ord(ch) < 32 or ord(ch) == 127 for ch in text):
+        raise ValueError("entry must not contain control characters")
+    return text
+
+
+def main() -> int:
+    try:
+        text = valid_line(LINE)
+    except ValueError as err:
+        print(f"invalid entry: {err}", file=sys.stderr)
         return 1
     out_dir = os.environ.get("OUTPUT_DIR", "/output")
     os.makedirs(out_dir, exist_ok=True)
